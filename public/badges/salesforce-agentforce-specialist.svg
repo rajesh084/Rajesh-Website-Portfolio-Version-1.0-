@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 260" role="img" aria-labelledby="title desc">
+  <title id="title">Salesforce Certified Agentforce Specialist badge</title>
+  <desc id="desc">Purple Salesforce certification badge for Agentforce Specialist.</desc>
+  <defs>
+    <linearGradient id="edge" x1="40" x2="220" y1="220" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9bd7ff"/>
+      <stop offset=".5" stop-color="#7971ff"/>
+      <stop offset="1" stop-color="#04c6b8"/>
+    </linearGradient>
+  </defs>
+  <path d="M73 8h114l62 74-20 136-99 39-99-39L11 82 73 8Z" fill="#31108d"/>
+  <path d="M31 190l99 40 99-40-5 28-94 38-94-38-5-28Z" fill="url(#edge)"/>
+  <g fill="#19aee4">
+    <circle cx="104" cy="50" r="22"/>
+    <circle cx="128" cy="49" r="23"/>
+    <circle cx="151" cy="48" r="20"/>
+    <circle cx="116" cy="67" r="21"/>
+    <circle cx="139" cy="65" r="18"/>
+  </g>
+  <text x="130" y="112" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="35" font-weight="800" fill="#fff" letter-spacing="1">CERTIFIED</text>
+  <text x="130" y="151" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="24" font-weight="800" fill="#fff">Agentforce</text>
+  <text x="130" y="181" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="24" font-weight="800" fill="#fff">Specialist</text>
+</svg>
