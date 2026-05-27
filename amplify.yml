@@ -1,9 +1,11 @@
-version: 1
+ version: 1
 frontend:
   phases:
     preBuild:
       commands:
-        - npm install
+        - node -v
+        - npm -v
+        - npm ci --no-audit --no-fund
     build:
       commands:
         - npm run build
@@ -12,5 +14,4 @@ frontend:
     files:
       - '**/*'
   cache:
-    paths:
-      - node_modules/**/*
+    paths: []
