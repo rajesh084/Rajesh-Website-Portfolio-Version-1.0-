@@ -1,17 +1,18 @@
-import type { Config } from "tailwindcss"
+import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  content: ["./app/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
+        sans: ["var(--font-site)", '"Helvetica Neue"', "Helvetica", "Arial", "sans-serif"],
       },
-      boxShadow: {
-        glass: "0 24px 80px rgba(15, 23, 42, 0.16)",
+      letterSpacing: {
+        tight: "-0.02em",
+        snug: "-0.01em",
       },
     },
   },
   plugins: [],
-}
-export default config
+};
+export default config;

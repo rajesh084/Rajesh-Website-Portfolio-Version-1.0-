@@ -5,6 +5,10 @@ node_modules/
 .next/
 out/
 
+# vercel / local data
+.vercel
+data/analytics-events.json
+
 # environment files
 .env
 .env*.local

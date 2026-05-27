@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1120" viewBox="0 0 1024 1120" role="img" aria-label="Ingenious Champion Juniper">
+  <path d="M512 0C636 128 793 177 962 177V709C962 829 875 865 753 905C634 944 557 1016 512 1120C467 1016 390 944 271 905C149 865 62 829 62 709V177C231 177 388 128 512 0Z" fill="#246f00" />
+  <path d="M512 58C626 166 770 215 919 225V709C919 795 856 827 736 869C636 904 557 965 512 1056C467 965 388 904 288 869C168 827 105 795 105 709V225C254 215 398 166 512 58Z" fill="none" stroke="#dfeecb" stroke-width="10" />
+  <path d="M105 407L188 462H105V529H188L105 474Z" fill="#dfeecb" />
+  <path d="M919 407L836 462H919V529H836L919 474Z" fill="#dfeecb" />
+  <path d="M422 169C522 105 642 143 704 207C654 188 598 186 555 205C629 213 699 282 725 366C758 472 704 558 606 628C565 657 561 700 581 747C526 717 497 669 502 612C471 661 449 712 464 761C401 725 380 658 401 591C416 542 455 503 510 468C563 434 584 386 559 321C538 361 500 394 455 408C478 367 482 328 468 294C438 309 411 335 399 374C375 334 380 227 422 169Z" fill="#dfeecb" />
+  <path d="M397 269C359 296 333 334 326 372C360 350 392 342 427 351C397 367 372 392 362 424C402 414 435 419 463 442C427 449 398 469 381 499C418 493 450 501 474 524C442 531 417 551 404 580C440 572 470 581 491 604C493 539 531 500 590 463C644 429 660 376 628 318C601 267 531 240 465 259C439 267 416 281 397 269Z" fill="#dfeecb" />
+  <path d="M370 322C349 329 335 342 326 359C347 356 367 358 386 365C379 351 374 337 370 322Z" fill="#246f00" />
+  <path d="M410 327C436 317 458 319 477 333C451 337 431 349 418 369C411 357 408 343 410 327Z" fill="#246f00" />
+  <path d="M330 435C352 430 374 432 396 441C376 454 356 461 335 460C331 453 329 445 330 435Z" fill="#246f00" />
+  <text x="512" y="696" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="98" font-weight="800" letter-spacing="2" fill="#dfeecb">INGENIOUS</text>
+  <text x="512" y="766" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="400" letter-spacing="24" fill="#dfeecb">CHAMPION</text>
+  <line x1="466" y1="814" x2="558" y2="814" stroke="#dfeecb" stroke-width="10" />
+  <text x="512" y="900" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="800" letter-spacing="2" fill="#dfeecb">JUNIPER</text>
+</svg>

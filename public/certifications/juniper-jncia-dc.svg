@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Certified Juniper Networks JNCIA-DC Associate">
+  <defs>
+    <path id="topArc" d="M 178 406 A 360 360 0 0 1 846 406" />
+    <path id="bottomArc" d="M 846 638 A 360 360 0 0 1 178 638" />
+  </defs>
+  <circle cx="512" cy="512" r="506" fill="#9bbf52" />
+  <circle cx="512" cy="512" r="385" fill="#4e8f16" />
+  <circle cx="512" cy="512" r="505" fill="none" stroke="#2e6e05" stroke-width="10" />
+  <path d="M154 304 A415 415 0 0 0 154 720" fill="none" stroke="#5a971f" stroke-width="8" stroke-linecap="round" />
+  <path d="M870 304 A415 415 0 0 1 870 720" fill="none" stroke="#5a971f" stroke-width="8" stroke-linecap="round" />
+  <text font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="800" letter-spacing="24" fill="#fff">
+    <textPath href="#topArc" startOffset="50%" text-anchor="middle">CERTIFIED</textPath>
+  </text>
+  <text x="512" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="300" letter-spacing="-5" fill="#fff">Juniper</text>
+  <text x="512" y="362" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" letter-spacing="2" fill="#fff">NETWORKS</text>
+  <text x="512" y="540" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="118" font-weight="600" letter-spacing="4" fill="#fff">JNCIA-DC</text>
+  <path d="M356 712 C434 682 482 674 512 674 C542 674 590 682 668 712 L512 764 Z" fill="#9bbf52" />
+  <text font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="800" letter-spacing="21" fill="#fff">
+    <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">ASSOCIATE</textPath>
+  </text>
+</svg>

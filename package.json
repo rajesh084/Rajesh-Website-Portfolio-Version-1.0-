@@ -1,32 +1,30 @@
 {
-  "name": "rajesh-portfolio-interactive",
+  "name": "rajesh-portfolio-rebuilt",
   "version": "1.0.0",
   "private": true,
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
-  "type": "module",
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@types/node": "^20.11.30",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "autoprefixer": "^10.4.19",
-    "lucide-react": "^1.14.0",
-    "next": "^15.5.18",
-    "postcss": "^8.4.38",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "tailwindcss": "^3.4.3",
-    "typescript": "^5.4.3"
+    "@vercel/analytics": "^1.4.1",
+    "next": "^15.1.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "lucide-react": "latest"
   },
   "devDependencies": {
-    "simple-icons": "^14.15.0"
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
   }
 }

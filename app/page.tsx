@@ -1,1270 +1,736 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import {
-  ArrowRight,
-  Award,
-  BarChart3,
-  BriefcaseBusiness,
-  CheckCircle2,
-  ChevronDown,
-  Cloud,
-  Copy,
-  Database,
-  ExternalLink,
-  FileText,
-  Filter,
-  Mail,
-  MapPin,
-  Menu,
-  MessageCircle,
-  Network,
-  Phone,
-  Send,
-  Server,
-  ShieldCheck,
-  Sparkles,
-  Target,
-  Users,
-  Wifi,
-  X,
-  Zap,
-} from "lucide-react"
-import type { FormEvent } from "react"
-import { useEffect, useMemo, useState } from "react"
-import type { LucideIcon } from "lucide-react"
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { BriefcaseBusiness, ExternalLink, Mail, Phone } from "lucide-react";
 
-type CertificationEntry = {
-  category: "HPE" | "Juniper" | "Dell" | "Cisco" | "Microsoft" | "Salesforce"
-  vendor: string
-  title: string
-  issued: string
-  expires?: string
-  credentialId?: string
-  skills?: string[]
-  evidence?: string
-  note?: string
-  badge?: string
-  logo?: string
-  logoFit?: "vector" | "photo-cover" | "photo-banner"
-  mark: string
-}
+type ViewId = "home" | "about" | "expertise" | "experience" | "projects" | "certifications" | "contact";
+type CertCategory = "All" | "HPE" | "Juniper" | "Dell" | "Cisco" | "Microsoft" | "Salesforce" | "Other";
 
-type ExpertiseEntry = {
-  title: string
-  text: string
-  detail: string
-  metric: string
-  Icon: LucideIcon
-  accent: string
-}
+type AnalyticsEvent = {
+  id: string;
+  type: "visit" | "pageview" | "click" | "contact";
+  label: string;
+  time: string;
+  visitorId: string;
+  sessionId: string;
+  ip?: string;
+  userAgent?: string;
+  view?: string;
+  referrer?: string;
+  name?: string;
+  email?: string;
+};
 
-type ExperienceEntry = {
-  company: string
-  role: string
-  period: string
-  place: string
-  logo: string
-  text: string
-  details: string[]
-}
+type DailyMetric = {
+  date: string;
+  visits: number;
+  pageviews: number;
+  uniqueVisitors: number;
+  uniqueSessions: number;
+  clicks: number;
+  contacts: number;
+};
 
-type SolutionTrack = {
-  id: string
-  label: string
-  headline: string
-  summary: string
-  Icon: LucideIcon
-  stack: string[]
-  questions: string[]
-  outcome: string
-  accent: string
-}
+type VisitorProfile = {
+  visitorId: string;
+  firstSeen: string;
+  lastSeen: string;
+  sessions: number;
+  eventCount: number;
+  lastIp: string;
+  views: string[];
+};
 
-const emailAddress = "rajeshrg086@gmail.com"
-const phoneNumber = "+13652929588"
-const linkedInUrl = "https://www.linkedin.com/in/rajesh-r-g-948136a0/"
+type AnalyticsSummary = {
+  generatedAt: string;
+  retentionDays: number;
+  totalEvents: number;
+  visitsToday: number;
+  visitsLast7Days: number;
+  visitsLast30Days: number;
+  uniqueVisitorsToday: number;
+  uniqueVisitorsLast7Days: number;
+  uniqueVisitorsLast30Days: number;
+  uniqueSessionsToday: number;
+  activeSessionsLast15Min: number;
+  totalClicks: number;
+  totalContacts: number;
+  dailyMetrics: DailyMetric[];
+  topClicks: { label: string; count: number }[];
+  visitors: VisitorProfile[];
+};
 
-const navItems = [
-  { label: "About", href: "#about" },
-  { label: "Expertise", href: "#expertise" },
-  { label: "Studio", href: "#solution-studio" },
-  { label: "Experience", href: "#experience" },
-  { label: "Projects", href: "#projects" },
-  { label: "Contact", href: "#contact" },
-]
+const OWNER_PASSWORD = "ParuRaj084$";
 
-const quickStats = [
-  { value: "100+", label: "solutions, demos, and proposals shaped" },
-]
+const profile = {
+  name: "Rajesh R G",
+  title: "Solutions Engineer",
+  tagline: "Pre-Sales Engineer | HPE Aruba | Cloud | Cybersecurity",
+  location: "Toronto, Canada",
+  email: "rajeshrg086@gmail.com",
+  phone: "+13652929588",
+  linkedin: "linkedin.com/in/rajesh-r-g-948136a0",
+  linkedinUrl: "https://www.linkedin.com/in/rajesh-r-g-948136a0/",
+  photo: "/rajesh-profile.png",
+  photoNew: "/rajesh-profile-new.png",
+  background: "/toronto-skyline.jpg",
+};
 
-const roleHighlights = [
-  "Discovery workshops",
-  "HPE Aruba positioning",
-  "Secure campus architecture",
-  "Cloud-connected infrastructure",
-]
+const navItems: { id: ViewId; label: string; icon: string }[] = [
+  { id: "home", label: "Home", icon: "⌂" },
+  { id: "about", label: "About", icon: "◎" },
+  { id: "expertise", label: "Expertise", icon: "✣" },
+  { id: "experience", label: "Experience", icon: "▣" },
+  { id: "projects", label: "Projects", icon: "▤" },
+  { id: "certifications", label: "Certifications", icon: "◈" },
+  { id: "contact", label: "Contact", icon: "✉" },
+];
 
-const expertise: ExpertiseEntry[] = [
-  {
-    title: "HPE Aruba Networking",
-    text: "Customer discovery, Aruba Central, wired, wireless, and SD-WAN solution conversations.",
-    detail: "Turns business needs into scoped access, campus, and operations designs.",
-    metric: "Campus + Central",
-    Icon: Server,
-    accent: "bg-cyan-500/10 text-cyan-700 border-cyan-500/25",
-  },
-  {
-    title: "Switching and Wireless",
-    text: "Enterprise LAN, WLAN, Wi-Fi 6/6E, access layer design, and deployment planning.",
-    detail: "Balances coverage, capacity, resiliency, and day-two manageability.",
-    metric: "LAN + WLAN",
-    Icon: Wifi,
-    accent: "bg-emerald-500/10 text-emerald-700 border-emerald-500/25",
-  },
-  {
-    title: "Cybersecurity",
-    text: "Secure access, VPN, SASE, network security, and risk-aware architecture.",
-    detail: "Connects user access decisions to practical controls and operations.",
-    metric: "Zero trust edge",
-    Icon: ShieldCheck,
-    accent: "bg-rose-500/10 text-rose-700 border-rose-500/25",
-  },
-  {
-    title: "Cloud Solutions",
-    text: "Hybrid cloud, AWS, Azure, GCP, and cloud-connected infrastructure strategy.",
-    detail: "Frames migration and connectivity choices around business continuity.",
-    metric: "Hybrid ready",
-    Icon: Cloud,
-    accent: "bg-sky-500/10 text-sky-700 border-sky-500/25",
-  },
-  {
-    title: "Data Protection",
-    text: "Backup, disaster recovery, cyber recovery, and continuity solution alignment.",
-    detail: "Connects recovery objectives to architecture, tooling, and operating models.",
-    metric: "RPO/RTO aware",
-    Icon: Database,
-    accent: "bg-amber-500/10 text-amber-700 border-amber-500/25",
-  },
-  {
-    title: "Consulting and Pre-Sales",
-    text: "Discovery, demos, RFI/RFP responses, proposals, BOMs, and sales enablement.",
-    detail: "Makes technical depth understandable for stakeholders and buying teams.",
-    metric: "RFI to BOM",
-    Icon: Users,
-    accent: "bg-indigo-500/10 text-indigo-700 border-indigo-500/25",
-  },
-]
+const expertise = [
+  ["HPE Aruba Networking", "Wired, wireless, switching, Aruba Central, licensing, BOMs, and customer solution mapping."],
+  ["Switching & Wireless", "Enterprise switching, Wi-Fi 6/6E, access layer design, WLAN conversations, and optimization."],
+  ["Cybersecurity", "Secure access, VPN, threat-aware network design, cyber recovery, and data protection alignment."],
+  ["Cloud Solutions", "AWS, Azure, GCP, hybrid cloud, infrastructure modernization, and cloud-connected networking."],
+  ["Data Protection", "Backup, recovery, cyber recovery, disaster recovery strategy, and business continuity conversations."],
+  ["Consulting & Pre-Sales", "Discovery, technical positioning, solution design, RFI/RFP support, demos, and workshops."],
+];
 
-const companyLogos = [
-  { name: "CDW Canada", logo: "/logos/cdw.svg" },
-  { name: "Dell Technologies", logo: "/logos/dell.svg" },
-  { name: "Tech Mahindra", logo: "/logos/tech-mahindra.svg" },
-  { name: "Cisco", logo: "/logos/cisco.svg" },
-  { name: "Hewlett Packard Enterprise", logo: "/logos/hpe.svg" },
-]
+const companies = [
+  { name: "CDW Canada", role: "Networking Solutions Specialist", logo: "/logos/cdw.svg" },
+  { name: "Dell Technologies", role: "Engineer 2, Product Technologist", logo: "/logos/dell.svg" },
+  { name: "Tech Mahindra", role: "Security Analyst", logo: "/logos/tech-mahindra.svg" },
+  { name: "Cisco", role: "TAC Engineer", logo: "/logos/cisco.svg" },
+  { name: "Hewlett Packard Enterprise", role: "Wireless Network Engineer", logo: "/logos/hpe.svg" },
+];
 
-const experience: ExperienceEntry[] = [
-  {
-    company: "CDW Canada",
-    role: "Networking Solutions Specialist",
-    period: "Jul 2025 - Present",
-    place: "Toronto, Canada",
-    logo: "/logos/cdw.svg",
-    text: "Pre-sales expertise for HPE Aruba Networking, customer discovery, solution design, BOMs, demos, workshops, and sales enablement.",
-    details: [
-      "Leads discovery conversations to clarify business goals, site constraints, and technical requirements.",
-      "Builds customer-ready solution narratives for wired, wireless, SD-WAN, and Aruba Central opportunities.",
-      "Supports account teams with demos, proposal language, and technical validation.",
-    ],
-  },
-  {
-    company: "Dell Technologies",
-    role: "Engineer 2, Product Technologist",
-    period: "Oct 2021 - Oct 2024",
-    place: "Bengaluru, India",
-    logo: "/logos/dell.svg",
-    text: "Data protection, cyber recovery, cloud-integrated solutions, technical validation, and cross-platform enablement.",
-    details: [
-      "Mapped backup and cyber recovery requirements to practical architecture options.",
-      "Worked across technical validation, enablement, and solution positioning for customer scenarios.",
-      "Translated platform capabilities into clear recommendations for sales and delivery teams.",
-    ],
-  },
-  {
-    company: "Tech Mahindra",
-    role: "Security Analyst",
-    period: "May 2020 - Oct 2021",
-    place: "Bengaluru, India",
-    logo: "/logos/tech-mahindra.svg",
-    text: "Secure access and VPN support, certificates, authentication, tunneling, licensing, RCA, and escalation management.",
-    details: [
-      "Handled secure access incidents involving authentication, certificates, and tunnel stability.",
-      "Produced root cause analysis and escalation notes for complex customer-impacting issues.",
-      "Supported licensing and operational continuity for enterprise security environments.",
-    ],
-  },
-  {
-    company: "Cisco",
-    role: "TAC Engineer",
-    period: "Nov 2018 - May 2020",
-    place: "Bengaluru, India",
-    logo: "/logos/cisco.svg",
-    text: "Enterprise networking troubleshooting, customer support, and technical issue resolution.",
-    details: [
-      "Troubleshot routing, switching, and customer network issues in production environments.",
-      "Communicated technical root causes and next steps to customer engineering teams.",
-      "Built a strong foundation in support discipline, documentation, and escalation handling.",
-    ],
-  },
-  {
-    company: "Hewlett Packard Enterprise",
-    role: "Wireless Network Engineer",
-    period: "Feb 2017 - Nov 2018",
-    place: "Bengaluru, India",
-    logo: "/logos/hpe.svg",
-    text: "Wireless network engineering, deployment support, optimization, and customer technical assistance.",
-    details: [
-      "Supported WLAN deployments and optimization across customer environments.",
-      "Assisted with configuration, troubleshooting, and operational handoff activities.",
-      "Built early specialization in wireless performance and enterprise access networking.",
-    ],
-  },
-]
-
-const solutionTracks: SolutionTrack[] = [
-  {
-    id: "campus",
-    label: "Campus Refresh",
-    headline: "Design a cleaner, cloud-managed campus network.",
-    summary: "A path for organizations modernizing access switching, wireless, and day-two operations without losing sight of budget and rollout reality.",
-    Icon: Network,
-    stack: ["Aruba Central", "Access switching", "Wi-Fi 6/6E", "Lifecycle planning"],
-    questions: ["How many sites and user profiles are in scope?", "What breaks most often today?", "What needs to be centrally operated?"],
-    outcome: "A phased campus design with discovery notes, technical assumptions, and a practical bill of materials direction.",
-    accent: "border-cyan-500/35 bg-cyan-500/10 text-cyan-800",
-  },
-  {
-    id: "secure-access",
-    label: "Secure Access",
-    headline: "Connect identity, access, and network controls.",
-    summary: "A practical security-led conversation that makes access decisions easier to understand for both IT and business stakeholders.",
-    Icon: ShieldCheck,
-    stack: ["Policy design", "VPN/SASE", "Segmentation", "Certificate flow"],
-    questions: ["Who needs access from where?", "Which apps and segments are sensitive?", "What audit or compliance needs matter most?"],
-    outcome: "A secure access story that maps users, applications, controls, and operational ownership.",
-    accent: "border-rose-500/35 bg-rose-500/10 text-rose-800",
-  },
-  {
-    id: "cloud",
-    label: "Hybrid Cloud",
-    headline: "Make infrastructure cloud-ready without overcomplicating it.",
-    summary: "A discovery-led track for teams connecting campus, data protection, and cloud operations into one clearer plan.",
-    Icon: Cloud,
-    stack: ["Azure/AWS/GCP", "Hybrid connectivity", "Operational readiness", "Migration inputs"],
-    questions: ["Which workloads are moving?", "What latency and recovery targets exist?", "Who owns day-two operations?"],
-    outcome: "A hybrid readiness view with constraints, design priorities, and next-step technical validation.",
-    accent: "border-sky-500/35 bg-sky-500/10 text-sky-800",
-  },
-  {
-    id: "recovery",
-    label: "Cyber Recovery",
-    headline: "Protect business operations with recovery-led architecture.",
-    summary: "A structured route from business continuity goals to backup, recovery, and resilience design choices.",
-    Icon: Database,
-    stack: ["Backup design", "Cyber vaulting", "RPO/RTO mapping", "Recovery testing"],
-    questions: ["Which systems define business continuity?", "What recovery time is acceptable?", "How often is recovery tested?"],
-    outcome: "A resilience brief that links critical workloads, recovery assumptions, and solution priorities.",
-    accent: "border-amber-500/35 bg-amber-500/10 text-amber-800",
-  },
-]
+const experience = [
+  { company: "CDW Canada", role: "Networking Solutions Specialist", period: "Jul 2025 - Present", location: "Toronto, Canada", logo: "/logos/cdw.svg", focus: "HPE Aruba Networking, customer discovery, solution design, BOMs, demos, workshops, and sales enablement." },
+  { company: "Dell Technologies", role: "Engineer 2, Product Technologist", period: "Oct 2021 - Oct 2024", location: "Bengaluru, India", logo: "/logos/dell.svg", focus: "Data protection, cyber recovery, cloud-integrated solutions, technical validation, and cross-platform enablement." },
+  { company: "Tech Mahindra", role: "Security Analyst", period: "May 2020 - Oct 2021", location: "Bengaluru, India", logo: "/logos/tech-mahindra.svg", focus: "Pulse Secure VPN troubleshooting, authentication, certificates, tunneling, licensing, RCA, and escalation management." },
+  { company: "Cisco", role: "TAC Engineer", period: "Nov 2018 - May 2020", location: "Bengaluru, India", logo: "/logos/cisco.svg", focus: "Enterprise networking support, technical troubleshooting, customer issue resolution, and escalation handling." },
+  { company: "Hewlett Packard Enterprise", role: "Wireless Network Engineer", period: "Feb 2017 - Nov 2018", location: "Bengaluru, India", logo: "/logos/hpe.svg", focus: "Wireless networking, deployment support, optimization, and customer technical assistance." },
+];
 
 const projects = [
-  {
-    tag: "Networking",
-    title: "HPE Aruba Opportunity Discovery Assistant",
-    text: "A guided workflow to identify customer needs, qualify solution areas, and capture next steps for sales conversations.",
-    impact: "Shortens early discovery and improves handoff quality.",
-  },
-  {
-    tag: "Pre-Sales",
-    title: "AI-Assisted BOM and RFI Workflow",
-    text: "A structured assistant concept that turns customer asks into BOM tables, missing information, and RFI questions.",
-    impact: "Makes proposal preparation more consistent and easier to review.",
-  },
-  {
-    tag: "Architecture",
-    title: "Network Solution Proposal Templates",
-    text: "Reusable customer-ready formats for discovery notes, solution positioning, and professional follow-up documents.",
-    impact: "Creates cleaner customer communication from the first meeting onward.",
-  },
-  {
-    tag: "Automation",
-    title: "Support Ticketing and OCR Assistant",
-    text: "Concept workflow for reading screenshots, understanding the ask, and creating response prompts for technical work.",
-    impact: "Reduces manual triage for repetitive technical support patterns.",
-  },
-]
+  ["HPE Aruba Network Modernization", "Networking", "Customer-ready Aruba switching and wireless recommendations aligned to technical and commercial requirements."],
+  ["AI-Assisted BOM and RFI Workflow", "AI Workflow", "Interactive workflow concept to classify customer asks, find missing details, and generate BOM or RFI next steps."],
+  ["Network Architecture Diagrams", "Design", "Proposal-friendly topology visuals for customer conversations, internal alignment, and solution validation."],
+  ["Customer Discovery Assistant", "Pre-Sales", "Guided discovery prompts to help account teams uncover requirements, risks, and expansion opportunities."],
+  ["Data Backup & DR Solution", "Data Protection", "Data protection and cyber recovery focused solution approach for hybrid and enterprise environments."],
+  ["Sales Enablement Templates", "Enablement", "Reusable technical content, proposal notes, and customer-ready messaging for faster sales cycles."],
+];
 
-const projectFilters = ["All", ...Array.from(new Set(projects.map((project) => project.tag)))]
+const certifications: { name: string; org: string; detail: string; logo: string; category: CertCategory }[] = [
+  { name: "HPE Sales Certified", org: "Hewlett Packard Enterprise", detail: "Compute and Storage Solutions", logo: "/certifications/hpe.svg", category: "HPE" },
+  { name: "HPE Aruba Sales Certified", org: "Hewlett Packard Enterprise", detail: "Aruba campus networking sales credential", logo: "/certifications/hpe.svg", category: "HPE" },
+  { name: "Juniper Networks Certified Associate, Data Center", org: "Juniper Networks", detail: "JNCIA-DC", logo: "/certifications/juniper-jncia-dc.svg", category: "Juniper" },
+  { name: "Ingenious Technical Champion", org: "Juniper Networks", detail: "Technical champion credential", logo: "/certifications/juniper-champion.svg", category: "Juniper" },
+  { name: "Specialist - Technology Architect", org: "Dell Technologies", detail: "Data Protection Version 1.0", logo: "/certifications/dell.svg", category: "Dell" },
+  { name: "Dell GenAI Foundations", org: "Dell Technologies", detail: "Generative AI foundation credential", logo: "/certifications/dell.svg", category: "Dell" },
+  { name: "Microsoft Azure Fundamentals", org: "Microsoft", detail: "AZ-900 foundation knowledge", logo: "/certifications/microsoft.svg", category: "Microsoft" },
+  { name: "CCNA", org: "Cisco", detail: "Cisco networking foundation", logo: "/certifications/cisco.svg", category: "Cisco" },
+  { name: "Salesforce Agentforce Specialist", org: "Salesforce", detail: "Agentforce Specialist", logo: "/certifications/salesforce.svg", category: "Salesforce" },
+  { name: "ITIL V4 Foundation", org: "PeopleCert", detail: "IT service management foundation", logo: "/certifications/itil.svg", category: "Other" },
+  { name: "Business English Certificate", org: "Cambridge", detail: "B1 Level", logo: "/certifications/cambridge.svg", category: "Other" },
+];
 
-const certifications: CertificationEntry[] = [
-  {
-    category: "Juniper",
-    vendor: "Juniper Networks",
-    title: "Juniper Networks Certified Associate, Data Center (JNCIA-DC)",
-    issued: "Mar 2026",
-    expires: "Mar 2029",
-    badge: "/badges/jncia-dc.svg",
-    mark: "JN",
-  },
-  {
-    category: "Juniper",
-    vendor: "Juniper Networks",
-    title: "Ingenious Technical Champion",
-    issued: "Mar 2026",
-    expires: "Oct 2026",
-    badge: "/badges/juniper-ingenious-champion.svg",
-    mark: "JN",
-  },
-  {
-    category: "HPE",
-    vendor: "Hewlett Packard Enterprise",
-    title: "HPE Aruba Networking Certified Professional - Campus Access",
-    issued: "Oct 2025",
-    expires: "Oct 2028",
-    evidence: "ACP-CamAcss-HPE0073808612 certificate.pdf",
-    note: "HPE certificate and badge for campus access expertise.",
-    logo: "/logos/hpe.svg",
-    mark: "HPE",
-  },
-  {
-    category: "HPE",
-    vendor: "Hewlett Packard Enterprise",
-    title: "HPE Sales Certified - Compute and Storage Solutions [2025]",
-    issued: "Aug 2025",
-    evidence: "Hewlett Packard Enterprise certificate.pdf",
-    note: "Earned with support from CDW Canada.",
-    logo: "/logos/hpe.svg",
-    mark: "HPE",
-  },
-  {
-    category: "HPE",
-    vendor: "Hewlett Packard Enterprise",
-    title: "HPE Sales Certified - HPE Aruba Networking Solutions",
-    issued: "Jul 2025",
-    expires: "Jul 2027",
-    skills: ["Aruba"],
-    evidence: "Aruba-SCE-APAS-HPE0073808612_a4.pdf",
-    note: "Validates positioning Aruba secure, AI-powered networking, Aruba Central, and next-generation campus, branch, and data-center networking.",
-    logo: "/logos/hpe.svg",
-    mark: "HPE",
-  },
-  {
-    category: "HPE",
-    vendor: "Hewlett Packard Enterprise",
-    title: "Aruba Product Specialist - Central",
-    issued: "Jul 2025",
-    expires: "Jul 2027",
-    skills: ["Wireless Networking", "Network Management Systems", "Aruba Central"],
-    logo: "/logos/hpe.svg",
-    mark: "HPE",
-  },
-  {
-    category: "Salesforce",
-    vendor: "Salesforce",
-    title: "Salesforce Certified Agentforce Specialist",
-    issued: "Jun 2025",
-    badge: "/badges/salesforce-agentforce-specialist.svg",
-    mark: "SF",
-  },
-  {
-    category: "Dell",
-    vendor: "Dell Technologies",
-    title: "Dell GenAI Foundations",
-    issued: "Oct 2024",
-    evidence: "Dell GenAI foundations achievement.pdf",
-    logo: "/logos/dell.svg",
-    mark: "Dell",
-  },
-  {
-    category: "Dell",
-    vendor: "Dell Technologies",
-    title: "Specialist - Technology Architect, Data Protection Version 1.0",
-    issued: "Mar 2022",
-    evidence: "Dell Specialist Data Protection.pdf",
-    logo: "/logos/dell.svg",
-    mark: "Dell",
-  },
-  {
-    category: "Dell",
-    vendor: "Dell Technologies",
-    title: "Associate - Data Protection and Management",
-    issued: "Jan 2022",
-    logo: "/logos/dell.svg",
-    mark: "Dell",
-  },
-  {
-    category: "Dell",
-    vendor: "Dell Technologies",
-    title: "Associate - Information Storage and Management Version 4.0",
-    issued: "Nov 2021",
-    logo: "/logos/dell.svg",
-    mark: "Dell",
-  },
-  {
-    category: "Cisco",
-    vendor: "Cisco",
-    title: "Cisco Certified Network Associate Routing and Switching (CCNA Routing and Switching)",
-    issued: "Sep 2018",
-    expires: "Sep 2021",
-    credentialId: "CSCO13365947",
-    skills: ["Routing and Switching"],
-    evidence: "CCNA - Credly-certificate.pdf",
-    logo: "/logos/cisco.svg",
-    mark: "Cisco",
-  },
-  {
-    category: "Microsoft",
-    vendor: "Microsoft",
-    title: "Microsoft Certified: Azure Fundamentals",
-    issued: "Jan 2021",
-    credentialId: "H6299749",
-    logo: "/logos/microsoft.svg",
-    mark: "MS",
-  },
-]
+const certFilters: CertCategory[] = ["All", "HPE", "Juniper", "Dell", "Cisco", "Microsoft", "Salesforce", "Other"];
 
-const certificationFilters = ["All", "HPE", "Juniper", "Dell", "Cisco", "Microsoft", "Salesforce"]
-
-function getSectionId(href: string) {
-  return href.replace("#", "")
+function getVisitorId() {
+  if (typeof window === "undefined") return "server";
+  let id = localStorage.getItem("rgVisitorId");
+  if (!id) {
+    id = `visitor-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    localStorage.setItem("rgVisitorId", id);
+  }
+  return id;
 }
 
-function sendContactEmail(event: FormEvent<HTMLFormElement>, onStatus: (message: string) => void) {
-  event.preventDefault()
-  const formData = new FormData(event.currentTarget)
-  const name = String(formData.get("name") || "")
-  const email = String(formData.get("email") || "")
-  const subject = String(formData.get("subject") || "Portfolio inquiry")
-  const message = String(formData.get("message") || "")
-
-  const body = [
-    "Hi Rajesh,",
-    "",
-    message,
-    "",
-    `Name: ${name}`,
-    `Email: ${email}`,
-  ].join("\n")
-
-  const mailtoUrl = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-  const launcher = document.createElement("a")
-
-  launcher.href = mailtoUrl
-  launcher.style.display = "none"
-  document.body.appendChild(launcher)
-
-  onStatus("Opening your default email app with the message ready to send.")
-  launcher.click()
-  launcher.remove()
+function getSessionId() {
+  if (typeof window === "undefined") return "server-session";
+  let id = sessionStorage.getItem("rgSessionId");
+  if (!id) {
+    id = `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    sessionStorage.setItem("rgSessionId", id);
+  }
+  return id;
 }
 
-function Nav({
-  activeSection,
-  mobileOpen,
-  scrollProgress,
-  onToggleMobile,
-  onCloseMobile,
+async function sendEvent(
+  type: AnalyticsEvent["type"],
+  label: string,
+  extra?: Partial<AnalyticsEvent> & { view?: string },
+) {
+  try {
+    await fetch("/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type,
+        label,
+        visitorId: getVisitorId(),
+        sessionId: getSessionId(),
+        view: extra?.view,
+        referrer: typeof document !== "undefined" ? document.referrer || "direct" : undefined,
+        ...extra,
+      }),
+    });
+  } catch {
+    // Local preview can still run if analytics is unavailable.
+  }
+}
+
+function GlassCard({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`glass ios-card rounded-[2rem] ${className}`}>{children}</div>;
+}
+
+function AnimatedView({ viewId, children }: { viewId: ViewId; children: ReactNode }) {
+  return (
+    <div key={viewId} className="ios-page-enter">
+      {children}
+    </div>
+  );
+}
+
+function LogoImage({ src, name }: { src: string; name: string }) {
+  return <img src={src} alt={name} className="mx-auto h-12 w-[150px] object-contain" />;
+}
+
+function CertLogoImage({ src, name }: { src: string; name: string }) {
+  return <img src={src} alt={name} className="mx-auto h-32 w-[170px] object-contain" />;
+}
+
+function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
+  return (
+    <div className="mb-8">
+      <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/45 px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm backdrop-blur-xl">
+        <span className="h-2 w-2 rounded-full bg-blue-500" /> {eyebrow}
+      </div>
+      <h2 className="text-4xl font-bold tracking-tight text-slate-950 md:text-5xl">{title}</h2>
+      <p className="mt-4 max-w-3xl text-base leading-7 text-slate-700">{subtitle}</p>
+    </div>
+  );
+}
+
+function LinkedInButton({
+  label = "LinkedIn Profile",
+  className = "",
+  onClick,
 }: {
-  activeSection: string
-  mobileOpen: boolean
-  scrollProgress: number
-  onToggleMobile: () => void
-  onCloseMobile: () => void
+  label?: string;
+  className?: string;
+  onClick?: () => void;
 }) {
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 px-4 pt-4 sm:px-6">
-      <div className="glass-strong mx-auto max-w-7xl overflow-hidden rounded-lg">
-        <div className="h-1 bg-slate-200/70">
-          <div className="h-full bg-cyan-600 transition-all duration-200" style={{ width: `${scrollProgress}%` }} />
+    <a
+      href={profile.linkedinUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onClick}
+      aria-label="Open Rajesh R G LinkedIn profile"
+      className={`ios-press inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0a66c2] px-5 py-3 text-sm font-semibold text-white shadow-xl shadow-blue-900/20 hover:-translate-y-0.5 hover:bg-[#084f9a] ${className}`}
+    >
+      <ExternalLink className="h-4 w-4" aria-hidden="true" />
+      <span>{label}</span>
+    </a>
+  );
+}
+
+function OwnerLogin() {
+  const [password, setPassword] = useState("");
+  const [isOwner, setIsOwner] = useState(false);
+  const [events, setEvents] = useState<AnalyticsEvent[]>([]);
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [error, setError] = useState("");
+  const [autoRefresh, setAutoRefresh] = useState(true);
+
+  async function loadEvents() {
+    const res = await fetch("/api/analytics", { cache: "no-store" });
+    const data = await res.json();
+    setEvents(Array.isArray(data.events) ? data.events : []);
+    setSummary(data.summary ?? null);
+  }
+
+  async function login(e: React.FormEvent) {
+    e.preventDefault();
+    if (password !== OWNER_PASSWORD) {
+      setError("Wrong password");
+      return;
+    }
+    setError("");
+    setIsOwner(true);
+    await loadEvents();
+  }
+
+  useEffect(() => {
+    if (!isOwner || !autoRefresh) return;
+    const timer = window.setInterval(() => {
+      void loadEvents();
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, [isOwner, autoRefresh]);
+
+  function exportCsv() {
+    const header = ["time", "type", "label", "visitorId", "sessionId", "view", "ip", "referrer", "name", "email"];
+    const rows = events.map((event) =>
+      [
+        event.time,
+        event.type,
+        event.label,
+        event.visitorId,
+        event.sessionId,
+        event.view ?? "",
+        event.ip ?? "",
+        event.referrer ?? "",
+        event.name ?? "",
+        event.email ?? "",
+      ]
+        .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+        .join(","),
+    );
+    const blob = new Blob([[header.join(","), ...rows].join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `portfolio-analytics-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const topClicks = summary?.topClicks ?? [];
+  const maxClick = Math.max(1, ...topClicks.map((item) => item.count));
+
+  if (!isOwner) {
+    return (
+      <form className="space-y-4" onSubmit={login}>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Owner login</p>
+          <h3 className="mt-1 text-2xl font-semibold text-slate-950">Private visitor stats</h3>
+          <p className="mt-2 text-sm text-slate-600">Visitor status is hidden from public visitors and only visible after owner login.</p>
         </div>
-        <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-5">
-          <a href="#home" className="group flex min-w-0 items-center gap-3" onClick={onCloseMobile}>
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-slate-950 text-sm font-semibold text-white shadow-sm transition group-hover:bg-cyan-700">
-              RG
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate text-base font-semibold text-slate-950">Rajesh R G</span>
-              <span className="block truncate text-xs font-medium text-slate-600">Networking Solutions Specialist</span>
-            </span>
-          </a>
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter owner password" className="w-full rounded-2xl border border-white/55 bg-white/65 px-4 py-3 outline-none focus:border-blue-400" />
+        {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
+        <button type="submit" className="w-full rounded-2xl bg-slate-950 px-5 py-3 font-semibold text-white">Login</button>
+      </form>
+    );
+  }
 
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
-            {navItems.map((item) => {
-              const isActive = activeSection === getSectionId(item.href)
-              return (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className={`nav-link ${isActive ? "nav-link-active" : ""}`}
-                >
-                  {item.label}
-                </a>
-              )
-            })}
-          </nav>
-
-          <div className="hidden items-center gap-2 sm:flex">
-            <a href="#certifications" className="soft-button inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-950">
-              <FileText size={16} /> Credentials
-            </a>
-            <a href="#contact" className="dark-button inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold">
-              <Send size={16} /> Contact
-            </a>
-          </div>
-
-          <button
-            type="button"
-            className="soft-button grid h-10 w-10 place-items-center rounded-lg text-slate-950 lg:hidden"
-            aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
-            aria-expanded={mobileOpen}
-            onClick={onToggleMobile}
-          >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Owner only</p>
+          <h3 className="text-2xl font-semibold text-slate-950">Visitor telemetry</h3>
+          {summary && (
+            <p className="mt-1 text-xs text-slate-600">
+              Retains {summary.retentionDays} days · Updated {new Date(summary.generatedAt).toLocaleString()}
+            </p>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => setAutoRefresh((value) => !value)} className={`rounded-xl px-3 py-2 text-sm font-semibold ${autoRefresh ? "bg-emerald-600 text-white" : "bg-white/70 text-slate-800"}`}>
+            {autoRefresh ? "Live (15s)" : "Paused"}
+          </button>
+          <button type="button" onClick={exportCsv} className="rounded-xl bg-white/70 px-3 py-2 text-sm font-semibold text-slate-800">
+            Export CSV
+          </button>
+          <button type="button" onClick={loadEvents} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white">
+            Refresh
           </button>
         </div>
-
-        {mobileOpen ? (
-          <div className="border-t border-white/60 px-4 pb-4 lg:hidden">
-            <nav className="grid gap-2 py-3" aria-label="Mobile navigation">
-              {navItems.map((item) => {
-                const isActive = activeSection === getSectionId(item.href)
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    onClick={onCloseMobile}
-                    className={`rounded-lg px-3 py-3 text-sm font-semibold transition ${isActive ? "bg-slate-950 text-white" : "bg-white/45 text-slate-800 hover:bg-white/75"}`}
-                  >
-                    {item.label}
-                  </a>
-                )
-              })}
-            </nav>
-            <a href="#contact" onClick={onCloseMobile} className="dark-button inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold">
-              <MessageCircle size={16} /> Start a conversation
-            </a>
-          </div>
-        ) : null}
       </div>
-    </header>
-  )
-}
 
-function Hero() {
-  return (
-    <section id="home" className="section-panel mx-auto max-w-7xl px-5 pt-32 sm:px-8 lg:pt-36">
-      <div className="grid items-center gap-9 lg:grid-cols-[1.02fr_0.98fr]">
-        <div>
-          <div className="glass mb-5 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-900">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Toronto based pre-sales engineer
-          </div>
-          <h1 className="text-balance text-5xl font-semibold leading-none tracking-normal text-slate-950 sm:text-6xl lg:text-[4.5rem]">
-            Rajesh R G
-          </h1>
-          <p className="mt-5 max-w-2xl text-xl font-medium leading-tight text-slate-700 sm:text-2xl">
-            Networking solutions specialist for modern campus, cloud, and secure access conversations.
-          </p>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700">
-            I help enterprise teams translate business goals into clear network architecture, technical validation, proposal direction, and customer-ready next steps.
-          </p>
-
-          <div className="mt-7 flex flex-wrap gap-2">
-            {roleHighlights.map((highlight) => (
-              <span key={highlight} className="rounded-lg border border-white/70 bg-white/55 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur">
-                {highlight}
-              </span>
-            ))}
+      {summary && (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <Stat value={summary.visitsToday} label="Sessions today" />
+            <Stat value={summary.uniqueVisitorsToday} label="Unique visitors today" />
+            <Stat value={summary.visitsLast7Days} label="Sessions (7 days)" />
+            <Stat value={summary.uniqueVisitorsLast7Days} label="Unique visitors (7 days)" />
+            <Stat value={summary.visitsLast30Days} label="Sessions (30 days)" />
+            <Stat value={summary.uniqueVisitorsLast30Days} label="Unique visitors (30 days)" />
+            <Stat value={summary.activeSessionsLast15Min} label="Active now (15 min)" />
+            <Stat value={summary.totalClicks} label="Total clicks (all time)" />
+            <Stat value={summary.totalContacts} label="Contact attempts" />
+            <Stat value={summary.totalEvents} label="Telemetry events stored" />
           </div>
 
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <a href="#solution-studio" className="dark-button inline-flex items-center justify-center gap-3 rounded-lg px-6 py-4 text-base font-semibold">
-              <Sparkles size={18} /> Explore the studio
-            </a>
-            <a href="#projects" className="soft-button inline-flex items-center justify-center gap-3 rounded-lg px-6 py-4 text-base font-semibold text-slate-950">
-              <ArrowRight size={18} /> View project ideas
-            </a>
-          </div>
-        </div>
-
-        <div>
-          <div className="glass-strong rounded-lg p-3">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="overflow-hidden rounded-lg border border-white/70 bg-white/45 p-2">
-                <Image
-                  src="/rajesh-profile.png"
-                  alt="Rajesh R G — event portrait"
-                  width={480}
-                  height={640}
-                  priority
-                  sizes="(min-width: 1024px) 220px, 45vw"
-                  className="h-auto w-full object-contain object-center"
-                />
-              </div>
-              <div className="overflow-hidden rounded-lg border border-white/70 bg-slate-950 p-2">
-                <Image
-                  src="/rajesh-profile-new.png"
-                  alt="Rajesh R G — professional headshot"
-                  width={480}
-                  height={640}
-                  sizes="(min-width: 1024px) 220px, 45vw"
-                  className="h-auto w-full object-contain object-center"
-                />
-              </div>
+          <div className="rounded-2xl bg-white/55 p-4">
+            <p className="mb-3 font-semibold text-slate-950">Daily visit matrix</p>
+            <div className="soft-scrollbar max-h-56 overflow-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-600">
+                    <th className="py-2 pr-2">Date</th>
+                    <th className="py-2 pr-2">Sessions</th>
+                    <th className="py-2 pr-2">Visitors</th>
+                    <th className="py-2 pr-2">Page views</th>
+                    <th className="py-2 pr-2">Clicks</th>
+                    <th className="py-2">Contacts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.dailyMetrics.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-3 text-slate-600">
+                        No daily data yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    summary.dailyMetrics.map((day) => (
+                      <tr key={day.date} className="border-b border-slate-100">
+                        <td className="py-2 pr-2 font-semibold text-slate-900">{day.date}</td>
+                        <td className="py-2 pr-2">{day.visits}</td>
+                        <td className="py-2 pr-2">{day.uniqueVisitors}</td>
+                        <td className="py-2 pr-2">{day.pageviews}</td>
+                        <td className="py-2 pr-2">{day.clicks}</td>
+                        <td className="py-2">{day.contacts}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            <a href={linkedInUrl} aria-label="LinkedIn profile" className="soft-button grid place-items-center rounded-lg p-4 text-slate-950 transition hover:-translate-y-0.5">
-              <BriefcaseBusiness />
-            </a>
-            <a href={`mailto:${emailAddress}`} aria-label="Email Rajesh" className="soft-button grid place-items-center rounded-lg p-4 text-slate-950 transition hover:-translate-y-0.5">
-              <Mail />
-            </a>
-            <a href={`tel:${phoneNumber}`} aria-label="Call Rajesh" className="soft-button grid place-items-center rounded-lg p-4 text-slate-950 transition hover:-translate-y-0.5">
-              <Phone />
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
 
-function CompanyLogoStrip() {
-  return (
-    <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
-      <div className="flex flex-col gap-5 rounded-lg border border-white/65 bg-white/35 p-5 backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-normal text-cyan-700">Technology background</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-950">Experience across leading enterprise technology organizations</h2>
-        </div>
-        <div className="grid flex-1 gap-3 sm:grid-cols-2 lg:max-w-3xl lg:grid-cols-5">
-          {companyLogos.map((company) => (
-            <div key={company.name} className="logo-card glass flex h-20 items-center justify-center rounded-lg p-3">
-              <Image src={company.logo} alt={`${company.name} logo`} width={180} height={72} className="max-h-12 w-auto object-contain" style={{ width: "auto", height: "auto" }} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function About() {
-  return (
-    <section id="about" className="section-panel mx-auto max-w-7xl px-5 sm:px-8">
-      <div className="grid gap-6 lg:grid-cols-[1.06fr_0.94fr]">
-        <div>
-          <p className="eyebrow">About Me</p>
-          <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-4xl">
-            I turn complex infrastructure requirements into clear customer-ready plans.
-          </h2>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-700">
-            With nearly eight years across enterprise networking, cloud, cybersecurity, and data protection, I bring a practical mix of troubleshooting depth and pre-sales storytelling. My work starts with listening, then shaping solutions that technical teams can trust and business leaders can understand.
-          </p>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {quickStats.map((stat) => (
-              <div key={stat.label} className="glass-strong rounded-lg p-5">
-                <p className="text-4xl font-semibold tracking-normal text-slate-950">{stat.value}</p>
-                <p className="mt-2 text-sm font-medium leading-5 text-slate-700">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="glass-strong rounded-lg p-6">
-          <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 place-items-center rounded-lg bg-slate-950 text-white">
-              <Target size={24} />
-            </span>
-            <div>
-              <h3 className="text-xl font-semibold text-slate-950">Operating style</h3>
-              <p className="text-sm font-medium text-slate-600">Discovery first, architecture second, clarity always.</p>
-            </div>
-          </div>
-          <div className="mt-6 grid gap-3">
-            {[
-              "Listen for the outcome behind the technical ask.",
-              "Convert messy requirements into decision-ready options.",
-              "Keep proposal language clear enough for every stakeholder.",
-              "Build trust through documentation, demos, and accountable follow-up.",
-            ].map((item) => (
-              <div key={item} className="feature-line">
-                <CheckCircle2 size={18} className="text-emerald-600" />
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function Expertise() {
-  return (
-    <section id="expertise" className="section-panel mx-auto max-w-7xl px-5 sm:px-8">
-      <p className="eyebrow">Expertise</p>
-      <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h2 className="max-w-3xl text-3xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-4xl">Core areas I bring into customer conversations</h2>
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-700">
-            The portfolio is strongest where pre-sales, architecture, and operational experience meet.
-          </p>
-        </div>
-        <a href="#contact" className="soft-button inline-flex w-fit items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-slate-950">
-          <MessageCircle size={16} /> Discuss a requirement
-        </a>
-      </div>
-
-      <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {expertise.map((item) => {
-          const Icon = item.Icon
-          return (
-            <article key={item.title} className="interactive-card glass-strong rounded-lg p-6">
-              <div className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold ${item.accent}`}>
-                <Icon size={18} /> {item.metric}
-              </div>
-              <h3 className="mt-6 text-2xl font-semibold tracking-normal text-slate-950">{item.title}</h3>
-              <p className="mt-3 text-base leading-7 text-slate-700">{item.text}</p>
-              <p className="mt-4 border-t border-white/65 pt-4 text-sm font-medium leading-6 text-slate-600">{item.detail}</p>
-            </article>
-          )
-        })}
-      </div>
-    </section>
-  )
-}
-
-function SolutionStudio({
-  activeSolution,
-  onSelect,
-}: {
-  activeSolution: SolutionTrack
-  onSelect: (id: string) => void
-}) {
-  const Icon = activeSolution.Icon
-
-  return (
-    <section id="solution-studio" className="section-panel mx-auto max-w-7xl px-5 sm:px-8">
-      <p className="eyebrow">Interactive Studio</p>
-      <div className="mt-4 grid gap-6 lg:grid-cols-[0.86fr_1.14fr]">
-        <div>
-          <h2 className="text-3xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-4xl">Pick a customer scenario and see how I would frame the conversation.</h2>
-          <p className="mt-5 text-lg leading-8 text-slate-700">
-            This lightweight studio shows the way I structure discovery: desired outcome, technical stack, clarifying questions, and a usable next step.
-          </p>
-
-          <div className="mt-8 grid gap-3">
-            {solutionTracks.map((track) => {
-              const TrackIcon = track.Icon
-              const isActive = activeSolution.id === track.id
-              return (
-                <button
-                  key={track.id}
-                  type="button"
-                  aria-pressed={isActive}
-                  onClick={() => onSelect(track.id)}
-                  className={`solution-tab ${isActive ? "solution-tab-active" : ""}`}
-                >
-                  <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg border ${track.accent}`}>
-                    <TrackIcon size={21} />
-                  </span>
-                  <span className="min-w-0 text-left">
-                    <span className="block text-base font-semibold">{track.label}</span>
-                    <span className="block text-sm font-medium text-slate-600">{track.stack.slice(0, 2).join(" + ")}</span>
-                  </span>
-                  <ChevronDown className={`ml-auto transition ${isActive ? "rotate-180 text-cyan-700" : "text-slate-400"}`} size={18} />
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className="glass-strong rounded-lg p-6 lg:p-8">
-          <div className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold ${activeSolution.accent}`}>
-            <Icon size={18} /> {activeSolution.label}
-          </div>
-          <h3 className="mt-6 text-2xl font-semibold leading-tight tracking-normal text-slate-950">{activeSolution.headline}</h3>
-          <p className="mt-4 text-base leading-7 text-slate-700">{activeSolution.summary}</p>
-
-          <div className="mt-7 grid gap-5 lg:grid-cols-2">
-            <div>
-              <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-normal text-slate-600">
-                <Zap size={16} /> Solution stack
-              </h4>
-              <div className="mt-3 grid gap-2">
-                {activeSolution.stack.map((item) => (
-                  <span key={item} className="rounded-lg border border-white/70 bg-white/50 px-3 py-2 text-sm font-semibold text-slate-700">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-normal text-slate-600">
-                <Filter size={16} /> Discovery questions
-              </h4>
-              <div className="mt-3 grid gap-2">
-                {activeSolution.questions.map((question) => (
-                  <div key={question} className="feature-line bg-white/45">
-                    <CheckCircle2 size={17} className="text-cyan-700" />
-                    <span>{question}</span>
+          <div className="rounded-2xl bg-white/55 p-4">
+            <p className="mb-3 font-semibold text-slate-950">Visitor profiles</p>
+            <div className="soft-scrollbar max-h-56 space-y-2 overflow-auto pr-1">
+              {summary.visitors.length === 0 ? (
+                <p className="text-sm text-slate-600">No visitors recorded yet.</p>
+              ) : (
+                summary.visitors.map((visitor) => (
+                  <div key={visitor.visitorId} className="rounded-xl bg-white/70 p-3 text-xs">
+                    <p className="font-semibold text-slate-900">{visitor.visitorId.slice(0, 28)}…</p>
+                    <p className="mt-1 text-slate-600">
+                      First: {new Date(visitor.firstSeen).toLocaleString()} · Last: {new Date(visitor.lastSeen).toLocaleString()}
+                    </p>
+                    <p className="mt-1 text-slate-600">
+                      Sessions: {visitor.sessions} · Events: {visitor.eventCount} · IP: {visitor.lastIp}
+                    </p>
+                    {visitor.views.length > 0 && <p className="mt-1 text-slate-600">Views: {visitor.views.join(", ")}</p>}
                   </div>
-                ))}
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      <div className="rounded-2xl bg-white/55 p-4">
+        <p className="mb-3 font-semibold text-slate-950">Top clicked items</p>
+        {topClicks.length === 0 ? (
+          <p className="text-sm text-slate-600">No clicks tracked yet.</p>
+        ) : (
+          topClicks.map((item) => (
+            <div key={item.label} className="mb-3">
+              <div className="mb-1 flex justify-between gap-3 text-sm">
+                <span className="truncate">{item.label}</span>
+                <span>{item.count}</span>
+              </div>
+              <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+                <div className="h-full rounded-full bg-blue-600" style={{ width: `${(item.count / maxClick) * 100}%` }} />
               </div>
             </div>
-          </div>
-
-          <div className="mt-7 rounded-lg border border-slate-900/10 bg-slate-950 p-5 text-white">
-            <p className="flex items-center gap-2 text-sm font-semibold text-cyan-200">
-              <BarChart3 size={17} /> Expected customer-ready output
-            </p>
-            <p className="mt-3 text-base leading-7 text-slate-100">{activeSolution.outcome}</p>
-          </div>
-        </div>
+          ))
+        )}
       </div>
-    </section>
-  )
-}
 
-function Experience({
-  activeCompany,
-  onSelect,
-}: {
-  activeCompany: string
-  onSelect: (company: string) => void
-}) {
-  const activeJob = experience.find((job) => job.company === activeCompany) ?? experience[0]
-
-  return (
-    <section id="experience" className="section-panel mx-auto max-w-7xl px-5 sm:px-8">
-      <p className="eyebrow">Experience</p>
-      <div className="mt-4 grid gap-7 lg:grid-cols-[0.9fr_1.1fr]">
-        <div>
-          <h2 className="text-3xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-4xl">A career built from support depth to solution leadership.</h2>
-          <p className="mt-5 text-lg leading-8 text-slate-700">
-            Select a role to see the strongest part of the story. The arc matters: troubleshooting, security, recovery, and now customer-facing network architecture.
-          </p>
-          <div className="mt-8 grid gap-3">
-            {experience.map((job) => {
-              const isActive = activeJob.company === job.company
-              return (
-                <button
-                  key={job.company}
-                  type="button"
-                  aria-pressed={isActive}
-                  onClick={() => onSelect(job.company)}
-                  className={`timeline-button ${isActive ? "timeline-button-active" : ""}`}
-                >
-                  <span className="logo-card flex h-12 w-24 shrink-0 items-center justify-center rounded-lg bg-white/60 p-2">
-                    <Image src={job.logo} alt={`${job.company} logo`} width={140} height={56} className="max-h-8 w-auto object-contain" style={{ width: "auto", height: "auto" }} />
-                  </span>
-                  <span className="min-w-0 text-left">
-                    <span className="block truncate text-base font-semibold">{job.company}</span>
-                    <span className="block truncate text-sm font-medium text-slate-600">{job.period}</span>
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <article className="glass-strong rounded-lg p-6 lg:p-8">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-cyan-700">{activeJob.company}</p>
-              <h3 className="mt-2 text-2xl font-semibold leading-tight tracking-normal text-slate-950">{activeJob.role}</h3>
-              <p className="mt-3 flex flex-wrap items-center gap-3 text-sm font-medium text-slate-600">
-                <span>{activeJob.period}</span>
-                <span className="inline-flex items-center gap-1"><MapPin size={15} /> {activeJob.place}</span>
-              </p>
-            </div>
-            <span className="logo-card flex h-16 w-36 shrink-0 items-center justify-center rounded-lg bg-white/55 p-3">
-              <Image src={activeJob.logo} alt={`${activeJob.company} logo`} width={170} height={72} className="max-h-10 w-auto object-contain" style={{ width: "auto", height: "auto" }} />
-            </span>
-          </div>
-          <p className="mt-6 text-base leading-7 text-slate-700">{activeJob.text}</p>
-          <div className="mt-6 grid gap-3">
-            {activeJob.details.map((detail) => (
-              <div key={detail} className="feature-line">
-                <CheckCircle2 size={18} className="text-emerald-600" />
-                <span>{detail}</span>
+      <div className="rounded-2xl bg-white/55 p-4">
+        <p className="mb-3 font-semibold text-slate-950">Recent activity</p>
+        <div className="soft-scrollbar max-h-72 space-y-2 overflow-auto pr-1">
+          {events
+            .slice(-40)
+            .reverse()
+            .map((event) => (
+              <div key={event.id} className="rounded-xl bg-white/70 p-3 text-sm">
+                <div className="flex justify-between gap-2">
+                  <span className="font-semibold">{event.label}</span>
+                  <span className="shrink-0 text-xs text-slate-500">{new Date(event.time).toLocaleString()}</span>
+                </div>
+                <p className="mt-1 text-xs text-slate-600">
+                  {event.type}
+                  {event.view ? ` · ${event.view}` : ""} · IP: {event.ip || "unknown"}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Visitor: {event.visitorId.slice(0, 22)}… · Session: {event.sessionId.slice(0, 18)}…
+                </p>
+                {(event.name || event.email) && (
+                  <p className="mt-1 text-xs text-slate-600">
+                    {event.name || ""} {event.email || ""}
+                  </p>
+                )}
               </div>
             ))}
-          </div>
-        </article>
+        </div>
       </div>
-    </section>
-  )
+
+      <p className="text-xs leading-5 text-slate-600">
+        Data is saved to <code className="rounded bg-white/60 px-1">data/analytics-events.json</code> on your server (kept ~6 months).
+        Each browser gets its own visitor ID; each tab session gets a session ID. Restart the dev server only after saving — data persists across refreshes.
+      </p>
+    </div>
+  );
 }
 
-function Projects({
-  activeFilter,
-  onFilterChange,
-}: {
-  activeFilter: string
-  onFilterChange: (filter: string) => void
-}) {
-  const filteredProjects = useMemo(
-    () => projects.filter((project) => activeFilter === "All" || project.tag === activeFilter),
-    [activeFilter],
-  )
+function Stat({ value, label }: { value: number; label: string }) {
+  return <div className="rounded-2xl bg-white/60 p-4"><p className="text-3xl font-semibold text-slate-950">{value}</p><p className="text-sm text-slate-600">{label}</p></div>;
+}
+
+function HomeView({ goTo, trackClick }: { goTo: (view: ViewId) => void; trackClick: (label: string) => void }) {
+  return (
+    <div className="space-y-8">
+      <section className="grid min-h-[660px] items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="ios-fade-in">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/55 bg-white/45 px-5 py-2.5 text-base font-semibold text-slate-800 shadow-sm backdrop-blur-xl"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Toronto based pre-sales engineer</div>
+          <h1 className="max-w-4xl text-6xl font-bold tracking-tight text-slate-950 sm:text-7xl lg:text-8xl">{profile.name}</h1>
+          <h2 className="mt-5 text-3xl font-bold tracking-tight text-blue-900 md:text-5xl">{profile.title}</h2>
+          <p className="mt-5 text-xl font-normal text-slate-700">{profile.tagline}</p>
+          <p className="mt-7 max-w-2xl text-xl leading-9 text-slate-700">Helping enterprises design, secure, and scale modern networking solutions. I bridge business goals with technical excellence to deliver reliable, future-ready outcomes.</p>
+          <div className="mt-9 flex flex-col gap-4 sm:flex-row">
+            <button type="button" onClick={() => goTo("projects")} className="ios-press rounded-2xl bg-slate-950 px-7 py-4 text-base font-semibold text-white shadow-2xl shadow-slate-900/25 hover:-translate-y-0.5 hover:bg-blue-700">Explore My Work</button>
+            <button type="button" onClick={() => goTo("contact")} className="ios-press rounded-2xl border border-white/60 bg-white/55 px-7 py-4 text-base font-semibold text-slate-950 shadow-xl backdrop-blur-xl hover:-translate-y-0.5 hover:bg-white/75">Get In Touch</button>
+            <LinkedInButton label="LinkedIn" onClick={() => trackClick("LinkedIn: hero")} className="px-7 py-4 text-base" />
+          </div>
+        </div>
+        <div className="ios-photo-enter mx-auto w-full max-w-[560px]">
+          <GlassCard className="p-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="overflow-hidden rounded-[1.2rem] border border-white/70 bg-white/45 p-2">
+                <img src={profile.photo} alt={`${profile.name} — event portrait`} className="h-auto w-full object-contain object-center" />
+              </div>
+              <div className="overflow-hidden rounded-[1.2rem] border border-white/70 bg-slate-950 p-2">
+                <img src={profile.photoNew} alt={`${profile.name} — professional headshot`} className="h-auto w-full object-contain object-center" />
+              </div>
+            </div>
+          </GlassCard>
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackClick("LinkedIn: hero")} aria-label="LinkedIn profile" className="ios-press glass flex items-center justify-center rounded-2xl p-4 text-slate-950 hover:-translate-y-0.5">
+              <BriefcaseBusiness className="h-5 w-5" aria-hidden="true" />
+            </a>
+            <a href={`mailto:${profile.email}`} onClick={() => trackClick("Email: hero")} aria-label="Email Rajesh" className="ios-press glass flex items-center justify-center rounded-2xl p-4 text-slate-950 hover:-translate-y-0.5">
+              <Mail className="h-5 w-5" aria-hidden="true" />
+            </a>
+            <a href={`tel:${profile.phone}`} onClick={() => trackClick("Phone: hero")} aria-label="Call Rajesh" className="ios-press glass flex items-center justify-center rounded-2xl p-4 text-slate-950 hover:-translate-y-0.5">
+              <Phone className="h-5 w-5" aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+      </section>
+      <div className="ios-stagger grid grid-cols-2 gap-4 lg:grid-cols-6">{expertise.map(([title]) => <button type="button" key={title} onClick={() => goTo("expertise")} className="ios-press rounded-[1.4rem] border border-white/45 bg-white/35 p-5 text-left font-semibold shadow-xl backdrop-blur-2xl hover:-translate-y-1 hover:bg-white/55">{title}</button>)}</div>
+      <GlassCard className="p-6"><h3 className="mb-5 text-center text-lg font-semibold text-slate-950">Trusted Experience Across Leading Technology Organizations</h3><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{companies.map((company) => <div key={company.name} className="rounded-2xl border border-white/45 bg-white/40 p-5 shadow-sm backdrop-blur-xl"><LogoImage src={company.logo} name={company.name} /><p className="mt-3 text-center text-xs font-semibold text-slate-700">{company.role}</p></div>)}</div></GlassCard>
+    </div>
+  );
+}
+
+const websiteFeatures = [
+  "Easy-to-read educational content on AI, cloud, networking, and security",
+  "A clean and responsive design for desktop and mobile users",
+  "A simple user-friendly layout focused on learning and exploration",
+  "Cloud-hosted deployment using AWS",
+];
+
+function AboutView({ goTo, trackClick }: { goTo: (view: ViewId) => void; trackClick: (label: string) => void }) {
+  function shareFeedback() {
+    trackClick("Share Feedback");
+    goTo("contact");
+  }
 
   return (
-    <section id="projects" className="section-panel mx-auto max-w-7xl px-5 sm:px-8">
-      <p className="eyebrow">Projects</p>
-      <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h2 className="max-w-3xl text-3xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-4xl">Featured project concepts and reusable workflows</h2>
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-700">
-            Filter by theme to see the kind of tools and templates that support stronger customer conversations.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2" aria-label="Project filters">
-          {projectFilters.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              aria-pressed={activeFilter === filter}
-              onClick={() => onFilterChange(filter)}
-              className={`filter-button ${activeFilter === filter ? "filter-button-active" : ""}`}
-            >
-              {filter}
-            </button>
+    <div className="space-y-6">
+      <SectionHeader
+        eyebrow="About"
+        title="About this website"
+        subtitle="A personal learning platform for AI, cloud, networking, and technology—built to explain complex ideas in a clear, practical way."
+      />
+
+      <GlassCard className="uniform-copy p-8">
+        <h3 className="text-2xl font-bold text-slate-950">About This Website</h3>
+        <p className="mt-4">
+          This website was designed and developed by me as a personal AI, cloud, networking, and technology learning platform. The goal of this site is to simplify complex technical concepts and make them easier to understand through clear explanations, practical examples, and educational content.
+        </p>
+        <p>
+          The website is hosted and deployed on Amazon Web Services (AWS), giving it a reliable, scalable, and cloud-ready foundation. It was built using modern web technologies such as HTML, CSS, JavaScript, and cloud deployment practices to deliver a clean and responsive user experience.
+        </p>
+      </GlassCard>
+
+      <GlassCard className="uniform-copy p-8">
+        <h3 className="text-2xl font-bold text-slate-950">Key Features</h3>
+        <p className="mt-4">This website includes:</p>
+        <ul className="mt-4 list-disc space-y-2 pl-6">
+          {websiteFeatures.map((feature) => (
+            <li key={feature}>{feature}</li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </GlassCard>
 
-      <div className="mt-10 grid gap-5 md:grid-cols-2">
-        {filteredProjects.map((project) => (
-          <article key={project.title} className="interactive-card glass-strong rounded-lg p-6">
-            <span className="rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-800">{project.tag}</span>
-            <h3 className="mt-5 text-2xl font-semibold tracking-normal text-slate-950">{project.title}</h3>
-            <p className="mt-3 text-base leading-7 text-slate-700">{project.text}</p>
-            <div className="mt-5 rounded-lg border border-white/70 bg-white/45 p-4">
-              <p className="text-sm font-semibold uppercase tracking-normal text-slate-500">Impact</p>
-              <p className="mt-2 text-sm font-medium leading-6 text-slate-700">{project.impact}</p>
-            </div>
-            <a href="#contact" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-800">
-              Contact me for details <ArrowRight size={16} />
-            </a>
-          </article>
-        ))}
-      </div>
-    </section>
-  )
+      <GlassCard className="uniform-copy p-8">
+        <h3 className="text-2xl font-bold text-slate-950">Development Approach</h3>
+        <p className="mt-4">
+          I developed this website with a focus on simplicity, performance, and practical learning. The website structure was created using front-end technologies, while AWS is used for hosting and deployment. This helped me gain hands-on experience in building, deploying, and managing a cloud-hosted website.
+        </p>
+      </GlassCard>
+
+      <GlassCard className="uniform-copy p-8">
+        <h3 className="text-2xl font-bold text-slate-950">Feedback</h3>
+        <p className="mt-4">
+          I&apos;m continuously improving this website based on user experience and feedback. Share suggestions, report issues, or request new content topics so the site becomes more useful for learners.
+        </p>
+        <button type="button" onClick={shareFeedback} className="ios-press mt-6 rounded-2xl bg-slate-950 px-6 py-4 text-base font-semibold text-white shadow-xl hover:bg-blue-700">
+          Share Feedback
+        </button>
+      </GlassCard>
+    </div>
+  );
 }
 
-function VendorMark({ cert }: { cert: CertificationEntry }) {
-  if (cert.badge) {
-    return (
-      <Image
-        src={cert.badge}
-        alt={`${cert.title} badge`}
-        width={180}
-        height={180}
-        className="badge-image"
-      />
-    )
+function ExpertiseView() {
+  return <div><SectionHeader eyebrow="Core Expertise" title="Core areas of expertise" subtitle="Interactive cards showing the solution areas I support across networking, security, cloud, and consulting." /><div className="ios-stagger grid gap-5 md:grid-cols-2 xl:grid-cols-3">{expertise.map(([title, detail]) => <GlassCard key={title} className="p-6"><h3 className="text-2xl font-semibold text-slate-950">{title}</h3><p className="mt-4 text-sm leading-7 text-slate-700">{detail}</p></GlassCard>)}</div></div>;
+}
+
+function ExperienceView() {
+  return <div><SectionHeader eyebrow="Professional Experience" title="A journey of growth, learning, and delivery" subtitle="Experience across CDW Canada, Dell Technologies, Tech Mahindra, Cisco, and HPE." /><div className="ios-stagger grid gap-4">{experience.map((job) => <GlassCard key={job.company} className="p-6"><div className="grid gap-4 md:grid-cols-[140px_1fr_auto] md:items-center"><LogoImage src={job.logo} name={job.company} /><div><h3 className="text-2xl font-semibold text-slate-950">{job.company}</h3><p className="font-semibold text-blue-800">{job.role}</p><p className="mt-2 text-slate-700">{job.focus}</p></div><div className="text-sm text-slate-600 md:text-right"><p>{job.period}</p><p>{job.location}</p></div></div></GlassCard>)}</div></div>;
+}
+
+function ProjectsView({ goTo, trackClick }: { goTo: (view: ViewId) => void; trackClick: (label: string) => void }) {
+  return <div><SectionHeader eyebrow="Featured Projects" title="Practical work that shows initiative" subtitle="Projects that demonstrate problem solving, pre-sales thinking, AI workflow ideas, and network architecture." /><div className="ios-stagger grid gap-5 md:grid-cols-2 xl:grid-cols-3">{projects.map(([title, tag, detail]) => <GlassCard key={title} className="p-6"><span className="rounded-full bg-white/55 px-3 py-1 text-xs font-semibold text-blue-700">{tag}</span><h3 className="mt-6 text-2xl font-semibold tracking-tight text-slate-950">{title}</h3><p className="mt-4 text-sm leading-7 text-slate-700">{detail}</p><button type="button" onClick={() => { trackClick(`Project: ${title}`); goTo("contact"); }} className="ios-press mt-6 text-sm font-semibold text-blue-700">Contact me for details →</button></GlassCard>)}</div></div>;
+}
+
+function CertificationsView({ trackClick }: { trackClick: (label: string) => void }) {
+  const [filter, setFilter] = useState<CertCategory>("All");
+  const filtered = filter === "All" ? certifications : certifications.filter((cert) => cert.category === filter);
+  const counts = useMemo(() => certFilters.reduce<Record<string, number>>((acc, item) => { acc[item] = item === "All" ? certifications.length : certifications.filter((cert) => cert.category === item).length; return acc; }, {}), []);
+  function choose(item: CertCategory) { setFilter(item); trackClick(`Certification filter: ${item}`); }
+  return (
+    <div>
+      <SectionHeader eyebrow="Certifications" title="Certifications and professional development" subtitle="Filters work on desktop and mobile. Tap a category to refine the credential list." />
+      <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">{certFilters.map((item) => <button type="button" key={item} onClick={() => choose(item)} className={`rounded-2xl border px-4 py-3 font-semibold transition ${filter === item ? "border-slate-950 bg-slate-950 text-white" : "border-white/55 bg-white/45 text-slate-800 backdrop-blur-xl"}`}>{item} <span className="ml-1 text-sm opacity-70">{counts[item]}</span></button>)}</div>
+      <div className="ios-stagger grid gap-5 md:grid-cols-2 xl:grid-cols-3">{filtered.map((cert) => <GlassCard key={`${cert.name}-${cert.org}`} className="p-6 hover:bg-white/55"><div className="flex items-start justify-between gap-4"><div className="rounded-2xl border border-white/45 bg-white/50 p-4"><CertLogoImage src={cert.logo} name={cert.org} /></div><button type="button" onClick={() => choose(cert.category)} className="rounded-full bg-cyan-100 px-3 py-1 text-sm font-semibold text-cyan-800">{cert.category}</button></div><h3 className="mt-6 text-xl font-semibold text-slate-950">{cert.name}</h3><p className="mt-2 text-sm font-semibold text-blue-800">{cert.org}</p><p className="mt-3 text-sm leading-6 text-slate-700">{cert.detail}</p></GlassCard>)}</div>
+    </div>
+  );
+}
+
+function ContactView({ trackContact, trackClick }: { trackContact: (name: string, email: string) => void; trackClick: (label: string) => void }) {
+  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  function submitForm(e: React.FormEvent) {
+    e.preventDefault();
+    trackContact(form.name, form.email);
+    const subject = encodeURIComponent(form.subject || "Portfolio website message");
+    const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`);
+    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`;
   }
-
-  if (cert.logo) {
-    return (
-      <Image
-        src={cert.logo}
-        alt={`${cert.vendor} logo`}
-        width={190}
-        height={72}
-        className="max-h-12 w-auto max-w-full object-contain"
-        style={{ width: "auto", height: "auto" }}
-      />
-    )
-  }
-
   return (
-    <span className={`vendor-mark vendor-mark-${cert.category.toLowerCase()}`}>
-      {cert.mark}
-    </span>
-  )
+    <div>
+      <SectionHeader eyebrow="Contact" title="Let’s connect" subtitle="Have a project in mind or want to discuss networking, cloud, and pre-sales opportunities? Let’s talk." />
+      <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+        <GlassCard className="p-8">
+          <div className="space-y-4">
+            {[["Location", profile.location], ["Email", profile.email], ["LinkedIn", profile.linkedin]].map(([a, b]) => (
+              <div key={a} className="rounded-2xl border border-white/45 bg-white/40 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{a}</p>
+                <p className="font-semibold text-slate-950">{b}</p>
+              </div>
+            ))}
+            <LinkedInButton label="Open LinkedIn Profile" onClick={() => trackClick("LinkedIn: contact")} className="w-full" />
+          </div>
+        </GlassCard>
+        <GlassCard className="p-8">
+          <form className="grid gap-4" onSubmit={submitForm}>
+            <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your Name" className="rounded-2xl border border-white/45 bg-white/55 px-5 py-4 outline-none" />
+            <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Your Email" className="rounded-2xl border border-white/45 bg-white/55 px-5 py-4 outline-none" />
+            <input required value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder="Subject" className="rounded-2xl border border-white/45 bg-white/55 px-5 py-4 outline-none" />
+            <textarea required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Your Message" rows={6} className="rounded-2xl border border-white/45 bg-white/55 px-5 py-4 outline-none" />
+            <button type="submit" className="rounded-2xl bg-slate-950 px-6 py-4 font-semibold text-white">Send Message</button>
+          </form>
+        </GlassCard>
+      </div>
+    </div>
+  );
 }
 
-function Certifications({
-  activeFilter,
-  onFilterChange,
-}: {
-  activeFilter: string
-  onFilterChange: (filter: string) => void
-}) {
-  const filteredCertifications = useMemo(
-    () => certifications.filter((cert) => activeFilter === "All" || cert.category === activeFilter),
-    [activeFilter],
-  )
-
-  return (
-    <section id="certifications" className="section-panel mx-auto max-w-7xl px-5 sm:px-8">
-      <p className="eyebrow">Certifications</p>
-      <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h2 className="max-w-3xl text-3xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-4xl">Certifications across HPE, Juniper, Dell, Microsoft, and Salesforce</h2>
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-700">
-            A current credential portfolio focused on Aruba campus networking, data center, cloud, data protection, and AI-enabled sales conversations.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end" aria-label="Certification filters">
-          {certificationFilters.map((filter) => {
-            const count = filter === "All" ? certifications.length : certifications.filter((cert) => cert.category === filter).length
-            return (
-              <button
-                key={filter}
-                type="button"
-                aria-pressed={activeFilter === filter}
-                onClick={() => onFilterChange(filter)}
-                className={`filter-button ${activeFilter === filter ? "filter-button-active" : ""}`}
-              >
-                {filter} <span className="ml-1 opacity-75">{count}</span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        {[
-          ["HPE", "4", "Aruba, Campus Access, Central, Compute and Storage"],
-          ["Juniper", "2", "Data Center and technical champion credentials"],
-          ["Dell", "4", "GenAI, data protection, storage, and management"],
-          ["Cisco", "1", "CCNA Routing and Switching"],
-          ["Microsoft", "1", "Azure Fundamentals"],
-          ["Salesforce", "1", "Agentforce Specialist"],
-        ].map(([vendor, count, text]) => (
-          <div key={vendor} className="cert-summary">
-            <p className="text-3xl font-semibold text-slate-950">{count}</p>
-            <p className="mt-1 text-sm font-bold text-cyan-800">{vendor}</p>
-            <p className="mt-2 text-xs font-medium leading-5 text-slate-600">{text}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {filteredCertifications.map((cert) => (
-          <article key={`${cert.vendor}-${cert.title}`} className="interactive-card glass-strong rounded-lg p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className={`logo-card flex ${cert.badge ? "h-24 min-w-28" : "h-16 min-w-28"} items-center justify-center overflow-hidden rounded-lg bg-white/50 px-4 py-3`}>
-                <VendorMark cert={cert} />
-              </div>
-              <div className="rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-800">
-                {cert.category}
-              </div>
-            </div>
-            <h3 className="mt-6 text-xl font-semibold leading-tight text-slate-950">{cert.title}</h3>
-            <p className="mt-2 text-sm font-semibold text-cyan-800">{cert.vendor}</p>
-            <div className="mt-5 grid gap-2 text-sm font-medium text-slate-700">
-              <p className="flex items-center gap-2">
-                <Award size={16} className="text-amber-700" /> Issued {cert.issued}
-              </p>
-              {cert.expires ? <p className="text-slate-600">Expires {cert.expires}</p> : null}
-              {cert.credentialId ? <p className="text-slate-600">Credential ID {cert.credentialId}</p> : null}
-            </div>
-            {cert.skills?.length ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {cert.skills.map((skill) => (
-                  <span key={skill} className="rounded-lg border border-white/70 bg-white/50 px-2.5 py-1.5 text-xs font-bold text-slate-700">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-            {cert.note ? <p className="mt-4 text-sm font-medium leading-6 text-slate-600">{cert.note}</p> : null}
-            {cert.evidence ? (
-              <div className="mt-5 rounded-lg border border-white/70 bg-white/45 p-3 text-xs font-bold leading-5 text-slate-600">
-                Certificate file: {cert.evidence}
-              </div>
-            ) : null}
-            <div className="mt-5 inline-flex items-center gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm font-semibold text-emerald-800">
-              <CheckCircle2 size={18} /> Credential listed
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function Contact({
-  status,
-  copied,
-  onCopyEmail,
-  onStatus,
-}: {
-  status: string
-  copied: boolean
-  onCopyEmail: () => void
-  onStatus: (message: string) => void
-}) {
-  return (
-    <section id="contact" className="section-panel mx-auto max-w-7xl px-5 sm:px-8">
-      <div className="grid gap-7 lg:grid-cols-[0.86fr_1.14fr]">
-        <div>
-          <p className="eyebrow">Contact</p>
-          <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-4xl">Let's connect about the next customer problem worth solving.</h2>
-          <p className="mt-5 max-w-xl text-lg leading-8 text-slate-700">
-            Send a note, copy the email address, or open LinkedIn. The form prepares a message in your email app so nothing is stored by the website.
-          </p>
-          <div className="mt-8 grid gap-3">
-            <a href={`mailto:${emailAddress}`} className="contact-row">
-              <Mail className="text-cyan-700" /> {emailAddress}
-            </a>
-            <a href={linkedInUrl} className="contact-row">
-              <BriefcaseBusiness className="text-cyan-700" /> linkedin.com/in/rajesh-r-g-948136a0
-            </a>
-            <a href={`tel:${phoneNumber}`} className="contact-row">
-              <Phone className="text-cyan-700" /> {phoneNumber}
-            </a>
-            <p className="contact-row">
-              <MapPin className="text-cyan-700" /> Toronto, Canada
-            </p>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button type="button" onClick={onCopyEmail} className="soft-button inline-flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-slate-950">
-              <Copy size={16} /> {copied ? "Email copied" : "Copy email"}
-            </button>
-            <a href={linkedInUrl} className="soft-button inline-flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-slate-950">
-              <ExternalLink size={16} /> Open LinkedIn
-            </a>
-          </div>
-        </div>
-
-        <form onSubmit={(event) => sendContactEmail(event, onStatus)} className="glass-strong rounded-lg p-6 sm:p-8">
-          <div className="grid gap-4">
-            <label className="field-label">
-              Name
-              <input name="name" required placeholder="Your name" className="form-field" />
-            </label>
-            <label className="field-label">
-              Email
-              <input name="email" required type="email" placeholder="you@example.com" className="form-field" />
-            </label>
-            <label className="field-label">
-              Subject
-              <input name="subject" required placeholder="How can Rajesh help?" className="form-field" />
-            </label>
-            <label className="field-label">
-              Message
-              <textarea name="message" required placeholder="Share the project, role, or customer challenge." rows={6} className="form-field resize-none" />
-            </label>
-            <button type="submit" className="dark-button inline-flex items-center justify-center gap-3 rounded-lg px-6 py-4 text-base font-semibold">
-              <Send size={18} /> Send Message
-            </button>
-            <p className="min-h-6 text-sm font-medium text-slate-600" role="status" aria-live="polite">
-              {status}
-            </p>
-          </div>
-        </form>
-      </div>
-    </section>
-  )
-}
-
-export default function RajeshPortfolio() {
-  const [activeSection, setActiveSection] = useState("home")
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [scrollProgress, setScrollProgress] = useState(0)
-  const [activeSolutionId, setActiveSolutionId] = useState(solutionTracks[0].id)
-  const [activeCompany, setActiveCompany] = useState(experience[0].company)
-  const [activeProjectFilter, setActiveProjectFilter] = useState("All")
-  const [activeCertFilter, setActiveCertFilter] = useState("All")
-  const [contactStatus, setContactStatus] = useState("")
-  const [copied, setCopied] = useState(false)
-
-  const activeSolution = solutionTracks.find((track) => track.id === activeSolutionId) ?? solutionTracks[0]
+export default function RajeshPortfolioApp() {
+  const [activeView, setActiveView] = useState<ViewId>("home");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollable = document.documentElement.scrollHeight - window.innerHeight
-      const progress = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0
-      setScrollProgress(Math.min(100, Math.max(0, progress)))
-
-      if (window.scrollY < 120) {
-        setActiveSection("home")
-      }
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-
-        if (visible?.target.id) {
-          setActiveSection(visible.target.id)
-        }
-      },
-      { rootMargin: "-35% 0px -50% 0px", threshold: [0.1, 0.25, 0.5] },
-    )
-
-    navItems.forEach((item) => {
-      const section = document.querySelector(item.href)
-      if (section) observer.observe(section)
-    })
-
-    handleScroll()
-    window.addEventListener("scroll", handleScroll, { passive: true })
-
-    return () => {
-      observer.disconnect()
-      window.removeEventListener("scroll", handleScroll)
-    }
-  }, [])
+    void sendEvent("visit", "Session started", { view: "home" });
+  }, []);
 
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : ""
-    return () => {
-      document.body.style.overflow = ""
-    }
-  }, [mobileOpen])
+    void sendEvent("pageview", `Viewed ${activeView}`, { view: activeView });
+  }, [activeView]);
 
-  const copyEmail = async () => {
-    try {
-      await navigator.clipboard.writeText(emailAddress)
-      setCopied(true)
-      setContactStatus("Email address copied to clipboard.")
-      window.setTimeout(() => setCopied(false), 2200)
-    } catch {
-      setContactStatus("Copy was blocked by the browser, so the email link is ready above.")
+  function trackClick(label: string) {
+    void sendEvent("click", label, { view: activeView });
+  }
+
+  function goTo(view: ViewId) {
+    trackClick(`Navigation: ${view}`);
+    setActiveView(view);
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function renderView() {
+    switch (activeView) {
+      case "about": return <AboutView goTo={goTo} trackClick={trackClick} />;
+      case "expertise": return <ExpertiseView />;
+      case "experience": return <ExperienceView />;
+      case "projects": return <ProjectsView goTo={goTo} trackClick={trackClick} />;
+      case "certifications": return <CertificationsView trackClick={trackClick} />;
+      case "contact": return <ContactView trackContact={(name, email) => { void sendEvent("contact", "Contact form submitted", { name, email }); }} trackClick={trackClick} />;
+      default: return <HomeView goTo={goTo} trackClick={trackClick} />;
     }
   }
 
   return (
-    <main className="bg-toronto min-h-screen font-helvetica text-slate-950">
-      <Nav
-        activeSection={activeSection}
-        mobileOpen={mobileOpen}
-        scrollProgress={scrollProgress}
-        onToggleMobile={() => setMobileOpen((open) => !open)}
-        onCloseMobile={() => setMobileOpen(false)}
-      />
-      <Hero />
-      <CompanyLogoStrip />
-      <About />
-      <Expertise />
-      <SolutionStudio activeSolution={activeSolution} onSelect={setActiveSolutionId} />
-      <Experience activeCompany={activeCompany} onSelect={setActiveCompany} />
-      <Projects activeFilter={activeProjectFilter} onFilterChange={setActiveProjectFilter} />
-      <Certifications activeFilter={activeCertFilter} onFilterChange={setActiveCertFilter} />
-      <Contact status={contactStatus} copied={copied} onCopyEmail={copyEmail} onStatus={setContactStatus} />
+    <main className="relative min-h-screen overflow-hidden bg-sky-50/20 font-sans antialiased text-slate-950">
+      <div className="ios-bg"><img src={profile.background} alt="Toronto skyline" /></div>
+      <div className="ios-shell-enter relative z-10 mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8">
+        <header className="ios-panel ios-header-enter sticky top-4 z-50 mb-10 rounded-[1.7rem] px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <button type="button" onClick={() => goTo("home")} className="ios-press flex shrink-0 items-center gap-3">
+              <div className="h-12 w-12 overflow-hidden rounded-2xl border border-white/60 bg-slate-950 shadow-inner">
+                <img src={profile.photoNew} alt={profile.name} className="h-full w-full object-cover object-top" />
+              </div>
+              <div className="hidden text-left sm:block">
+                <p className="font-semibold text-slate-950">{profile.name}</p>
+              </div>
+            </button>
+            <nav className="soft-scrollbar hidden min-w-0 flex-1 items-center justify-center gap-0.5 overflow-x-auto px-1 md:flex lg:gap-1">
+              {navItems.slice(1).map((item) => (
+                <button
+                  type="button"
+                  key={item.id}
+                  onClick={() => goTo(item.id)}
+                  className={`ios-nav-pill ios-press shrink-0 rounded-2xl px-2.5 py-2 text-xs font-semibold lg:px-4 lg:py-2.5 lg:text-sm ${activeView === item.id ? "bg-white/70 text-blue-700 shadow-sm" : "text-slate-700 hover:bg-white/45 hover:text-slate-950"}`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+            <div className="flex shrink-0 items-center gap-2 lg:gap-3">
+              <LinkedInButton label="LinkedIn" onClick={() => trackClick("LinkedIn: header")} className="hidden sm:inline-flex" />
+              <button type="button" onClick={() => setMenuOpen(true)} className="ios-press grid h-12 w-12 place-items-center rounded-2xl bg-white/70 text-2xl font-semibold text-slate-950 shadow-sm" aria-label="Open menu">☰</button>
+            </div>
+          </div>
+        </header>
+
+        {menuOpen && (
+          <div className="ios-overlay-enter fixed inset-0 z-[100] bg-slate-950/40 p-4 backdrop-blur-sm" onClick={() => setMenuOpen(false)}>
+            <div className="ios-menu ios-sheet-enter soft-scrollbar mx-auto max-h-[92vh] w-full max-w-md overflow-auto rounded-[2rem] p-5 md:ml-auto md:mr-0" onClick={(e) => e.stopPropagation()}>
+              <div className="mb-4 flex items-center justify-between"><h2 className="text-2xl font-semibold text-slate-950">Menu</h2><button type="button" onClick={() => setMenuOpen(false)} className="grid h-11 w-11 place-items-center rounded-2xl bg-white/70 text-xl">×</button></div>
+              <div className="grid gap-2">{navItems.map((item) => <button type="button" key={item.id} onClick={() => goTo(item.id)} className="flex items-center justify-between rounded-2xl px-4 py-3 text-left font-semibold text-slate-800 hover:bg-white/70"><span className="flex items-center gap-3"><span>{item.icon}</span>{item.label}</span><span>›</span></button>)}</div>
+              <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackClick("LinkedIn: menu")} className="mt-3 flex items-center justify-between rounded-2xl border border-blue-200 bg-[#0a66c2] px-4 py-3 text-left font-semibold text-white hover:bg-[#084f9a]"><span className="flex items-center gap-3"><ExternalLink className="h-4 w-4" aria-hidden="true" />LinkedIn Profile</span><span>›</span></a>
+              <div className="my-5 h-px bg-slate-300/70" />
+              <OwnerLogin />
+            </div>
+          </div>
+        )}
+
+        {activeView !== "home" && <div className="ios-fade-in mb-6 flex items-center gap-2 text-sm font-semibold text-slate-700"><button type="button" onClick={() => goTo("home")} className="ios-press hover:text-blue-700">Home</button><span>›</span><span className="text-blue-700">{navItems.find((i) => i.id === activeView)?.label}</span></div>}
+        <AnimatedView viewId={activeView}>{renderView()}</AnimatedView>
+      </div>
     </main>
-  )
+  );
 }
