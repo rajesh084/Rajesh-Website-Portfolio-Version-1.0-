@@ -71,7 +71,6 @@ const profile = {
   phone: "+13652929588",
   linkedin: "linkedin.com/in/rajesh-r-g-948136a0",
   linkedinUrl: "https://www.linkedin.com/in/rajesh-r-g-948136a0/",
-  photo: "/rajesh-profile.png",
   photoNew: "/rajesh-profile-new.png",
   background: "/toronto-skyline.jpg",
 };
@@ -495,13 +494,8 @@ function HomeView({ goTo, trackClick }: { goTo: (view: ViewId) => void; trackCli
         </div>
         <div className="ios-photo-enter mx-auto w-full max-w-[560px]">
           <GlassCard className="p-3">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="overflow-hidden rounded-[1.2rem] border border-white/70 bg-white/45 p-2">
-                <img src={profile.photo} alt={`${profile.name} — event portrait`} className="h-auto w-full object-contain object-center" />
-              </div>
-              <div className="overflow-hidden rounded-[1.2rem] border border-white/70 bg-slate-950 p-2">
-                <img src={profile.photoNew} alt={`${profile.name} — professional headshot`} className="h-auto w-full object-contain object-center" />
-              </div>
+            <div className="mx-auto w-full max-w-[280px] overflow-hidden rounded-[1.2rem] border border-white/70 bg-slate-950 p-2">
+              <img src={profile.photoNew} alt={`${profile.name} — professional headshot`} className="h-auto w-full object-contain object-center" />
             </div>
           </GlassCard>
           <div className="mt-4 grid grid-cols-3 gap-3">
